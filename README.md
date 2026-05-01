@@ -3,9 +3,9 @@
 Browser WASM demonstration of HTTP over VTun over WireGuard over SOCKS-over-WebSocket.
 
 It uses:
-- `github.com/asciimoth/socksgo` for SOCKS-over-WebSocket transport
-- `github.com/asciimoth/wgo` + `github.com/asciimoth/batchudp` for the WireGuard node
-- `github.com/asciimoth/gonnect-netstack/vtun` for the userspace TCP/IP stack
+- [socksgo](https://github.com/asciimoth/socksgo) for SOCKS-over-WebSocket transport
+- [wgo](https://github.com/asciimoth/wgo) + [batchudp](https://github.com/asciimoth/batchudp) for the WireGuard node
+- [vtun](https://github.com/asciimoth/gonnect-netstack/vtun) for the userspace TCP/IP stack
 
 The demo runs one WireGuard node per browser tab. You can:
 - connect the tab to an external WireGuard peer
