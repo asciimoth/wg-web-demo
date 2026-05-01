@@ -4,6 +4,7 @@ let serverRunning = false;
 let configDirty = false;
 let lastSuggestedPeerAllowedIPs = '';
 let lastSuggestedRequestUrl = '';
+const DEFAULT_PROXY_URL = 'socks5+ws://127.0.0.1:1080?bind=true&gost=true';
 const sharePayloadSchema = 'wg-web-demo/share-v1';
 
 function appendLog(line) {
@@ -162,8 +163,7 @@ function installConfigDirtyTracking() {
 }
 
 function defaultProxyUrl() {
-    const scheme = window.location.protocol === 'https:' ? 'socks5+wss://' : 'socks5+ws://';
-    return `${scheme}${window.location.hostname || '127.0.0.1'}:1080?bind=true&gost=true`;
+    return DEFAULT_PROXY_URL;
 }
 
 async function loadWasm() {
