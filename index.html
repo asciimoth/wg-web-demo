@@ -242,17 +242,29 @@
 <body>
     <main>
         <section class="hero">
-            <h1>HTTP over VTun over WireGuard over SOCKS-over-WebSocket</h1>
-            <p>This browser node uses <code>socksgo</code> for SOCKS-over-WebSocket, <code>batchudp</code> + <code>wgo</code> for the WireGuard transport, and <code>gonnect-netstack/vtun</code> for the userspace IP stack. It is designed for one WireGuard node per tab.</p>
-            <div class="chips">
-                <div class="chip">browser WASM node</div>
-                <div class="chip">one WG peer per tab</div>
-                <div class="chip">works with external WG peers</div>
-                <div class="chip">tab-to-tab pairing supported</div>
-                <div class="chip">extensive in-page logging</div>
-            </div>
+            <h1>HTTP over userspace TCP/IP stack over WireGuard over SOCKS-over-WebSocket</h1>
+            <p>
+              This browser node uses
+              <a href="https://github.com/asciimoth/socksgo">socksgo</a>
+              for SOCKS-over-WebSocket,
+              <a href="https://github.com/asciimoth/batchudp">batchudp</a> +
+              <a href="https://github.com/asciimoth/wgo">wgo</a>
+              for the WireGuard transport, and
+              <a href="https://github.com/asciimoth/gonnect-netstack">gonnect-netstack/vtun</a>
+              for the userspace TCP/IP stack.
+            </p>
             <div class="note">
-                <p>Typical test flow: 1. start a socks-over-websocket server such as <code>gost -L "socks5+ws://:1080?udp=true&amp;udpBufferSize=4096&amp;bind=true"</code>, 2. open one or two tabs with this demo, 3. keep the default proxy URL or use <code>socks5+ws://127.0.0.1:1080?bind=true&amp;gost=true</code>, 4. start each node, 5. exchange each tab’s public key and advertised endpoint, 6. set the peer allowed IPs, 7. click <code>Start / Apply Node</code> again or let the next server/request action auto-apply the pending peer config, 8. start the in-tunnel HTTP server on one side and request it from the other side.</p>
+                <p>
+                  Typical test flow:
+                  <ul>
+                    <li>start a socks-over-websocket server such as <code>gost -L "socks5+ws://:1080?udp=true&amp;udpBufferSize=4096&amp;bind=true"</code></li>
+                    <li>open one or two tabs with this demo</li>
+                    <li>start each node</li>
+                    <li>exchange each tab’s public key and advertised endpoint</li>
+                    <li>set the peer allowed IPs</li>
+                    <li>start the in-tunnel HTTP server on one side and request it from the other side</li>
+                  </ul>
+                </p>
             </div>
         </section>
 

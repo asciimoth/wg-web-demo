@@ -13,6 +13,10 @@ The demo runs one WireGuard node per browser tab. You can:
 
 For both cases you need SOCKS-over-WebSocket relay like [gost](https://gost.run/en/tutorials/protocols/socks/).
 
+<p align="center">
+<img src="./screen.png" align="center">
+</p>
+
 ## Build
 
 ```bash
