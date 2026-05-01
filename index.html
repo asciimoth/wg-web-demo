@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WG over SOCKS-over-WebSocket Demo</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0d1117;
+            --panel: #151c24;
+            --panel-2: #1b2430;
+            --line: #2d3948;
+            --text: #edf3fb;
+            --muted: #9fb0c2;
+            --accent: #4cc9f0;
+            --accent-2: #89fc7a;
+            --warn: #ffd166;
+            --error: #ff6b6b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(76, 201, 240, 0.18), transparent 30%),
+                radial-gradient(circle at top right, rgba(137, 252, 122, 0.12), transparent 26%),
+                linear-gradient(180deg, #081018, #0d1117 36%, #0d1117);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .hero {
+            border: 1px solid rgba(76, 201, 240, 0.28);
+            border-radius: 24px;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(21, 28, 36, 0.94), rgba(13, 17, 23, 0.96));
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+        }
+
+        h1, h2 {
+            margin: 0 0 12px;
+            font-family: "IBM Plex Mono", "Fira Code", monospace;
+            letter-spacing: -0.03em;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.3rem);
+        }
+
+        p, li {
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 16px 0 22px;
+        }
+
+        .chip {
+            border: 1px solid rgba(76, 201, 240, 0.35);
+            border-radius: 999px;
+            padding: 7px 12px;
+            background: rgba(76, 201, 240, 0.08);
+            color: var(--text);
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .card {
+            grid-column: span 12;
+            background: rgba(21, 28, 36, 0.88);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 18px;
+            backdrop-filter: blur(8px);
+        }
+
+        .card.half {
+            grid-column: span 6;
+        }
+
+        .card.third {
+            grid-column: span 4;
+        }
+
+        .note {
+            border-left: 4px solid var(--accent);
+            padding-left: 14px;
+            margin: 14px 0 0;
+        }
+
+        .status {
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .status.ready {
+            background: rgba(76, 201, 240, 0.12);
+            color: #b9eafe;
+        }
+
+        .status.loading {
+            background: rgba(255, 209, 102, 0.13);
+            color: #ffe6a6;
+        }
+
+        .status.success {
+            background: rgba(137, 252, 122, 0.13);
+            color: #c7ffbf;
+        }
+
+        .status.error {
+            background: rgba(255, 107, 107, 0.13);
+            color: #ffb7b7;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        label {
+            font-size: 0.92rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--panel-2);
+            color: var(--text);
+            padding: 12px 13px;
+            font: inherit;
+            font-family: "IBM Plex Mono", monospace;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .readonly {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #67e8f9);
+            color: #041018;
+        }
+
+        button.alt {
+            background: linear-gradient(135deg, #263445, #34465c);
+            color: var(--text);
+        }
+
+        button.warn {
+            background: linear-gradient(135deg, #f4b942, #ffd166);
+            color: #201407;
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .result, .logs {
+            background: #09111a;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: "IBM Plex Mono", monospace;
+        }
+
+        .result {
+            min-height: 180px;
+        }
+
+        .logs {
+            min-height: 320px;
+            max-height: 520px;
+            overflow: auto;
+        }
+
+        code {
+            font-family: "IBM Plex Mono", monospace;
+            color: var(--accent-2);
+        }
+
+        @media (max-width: 900px) {
+            .card.half, .card.third {
+                grid-column: span 12;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="hero">
+            <h1>HTTP over VTun over WireGuard over SOCKS-over-WebSocket</h1>
+            <p>This browser node uses <code>socksgo</code> for SOCKS-over-WebSocket, <code>batchudp</code> + <code>wgo</code> for the WireGuard transport, and <code>gonnect-netstack/vtun</code> for the userspace IP stack. It is designed for one WireGuard node per tab.</p>
+            <div class="chips">
+                <div class="chip">browser WASM node</div>
+                <div class="chip">one WG peer per tab</div>
+                <div class="chip">works with external WG peers</div>
+                <div class="chip">tab-to-tab pairing supported</div>
+                <div class="chip">extensive in-page logging</div>
+            </div>
+            <div class="note">
+                <p>Typical test flow: 1. start a socks-over-websocket server such as <code>gost -L "socks5+ws://:1080?udp=true&amp;udpBufferSize=4096&amp;bind=true"</code>, 2. open one or two tabs with this demo, 3. keep the default proxy URL or use <code>socks5+ws://127.0.0.1:1080?bind=true&amp;gost=true</code>, 4. start each node, 5. exchange each tab’s public key and advertised endpoint, 6. set the peer allowed IPs, 7. click <code>Start / Apply Node</code> again or let the next server/request action auto-apply the pending peer config, 8. start the in-tunnel HTTP server on one side and request it from the other side.</p>
+            </div>
+        </section>
+
+        <div class="grid">
+            <section class="card half">
+                <h2>Node Config</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="proxyUrl">SOCKS-over-WebSocket URL</label>
+                        <input id="proxyUrl" placeholder="socks5+ws://127.0.0.1:1080?bind=true&gost=true">
+                    </div>
+                    <div class="field">
+                        <label for="localTunnelAddr">Local tunnel IP</label>
+                        <input id="localTunnelAddr" placeholder="10.44.0.1">
+                    </div>
+                    <div class="field">
+                        <label for="listenPort">Requested WG listen port</label>
+                        <input id="listenPort" type="number" min="0" max="65535">
+                    </div>
+                    <div class="field">
+                        <label for="peerKeepalive">Peer keepalive seconds</label>
+                        <input id="peerKeepalive" type="number" min="0" max="65535">
+                    </div>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="localPrivateKey">Local private key</label>
+                    <textarea id="localPrivateKey" placeholder="Leave empty to generate on start"></textarea>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="localPublicKey">Local public key</label>
+                    <textarea id="localPublicKey" class="readonly" readonly placeholder="Generated from the private key"></textarea>
+                </div>
+                <div class="actions">
+                    <button id="generateKeysButton" onclick="generateKeys()">Generate Keypair</button>
+                    <button id="startNodeButton" onclick="startNode()">Start / Apply Node</button>
+                    <button id="stopNodeButton" class="alt" onclick="stopNode()">Stop Node</button>
+                </div>
+                <div id="nodeStatus" class="status ready">Loading WASM module...</div>
+            </section>
+
+            <section class="card half">
+                <h2>Peer Config</h2>
+                <div class="field">
+                    <label for="peerPublicKey">Peer public key</label>
+                    <textarea id="peerPublicKey" placeholder="Paste the other tab or external peer public key"></textarea>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="peerPresharedKey">Peer preshared key</label>
+                    <textarea id="peerPresharedKey" placeholder="Optional 32-byte base64 or hex key"></textarea>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="peerEndpoint">Peer endpoint</label>
+                    <input id="peerEndpoint" placeholder="host:port">
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="peerAllowedIPs">Peer allowed IPs</label>
+                    <textarea id="peerAllowedIPs" placeholder="10.44.0.2/32&#10;fd00::2/128"></textarea>
+                </div>
+                <div class="note">
+                    <p>For two tabs, each side should advertise a different tunnel IP and include the remote tab’s tunnel IP in <code>Peer allowed IPs</code>. Changing <code>Local tunnel IP</code> auto-updates the default peer IP and request URL until you override them manually. If you edit these fields while the node is already running, the new config is applied on the next <code>Start / Apply Node</code>, server start, or request.</p>
+                </div>
+            </section>
+
+            <section class="card half">
+                <h2>Share / Import</h2>
+                <div class="field">
+                    <label for="sharePayload">Node share payload</label>
+                    <textarea id="sharePayload" placeholder="Copy from one tab and paste into another"></textarea>
+                </div>
+                <div class="actions">
+                    <button id="copyNodeConfigButton" class="warn" onclick="copyCurrentNodeConfig()">Copy Current Node</button>
+                    <button id="pasteNodeConfigButton" class="alt" onclick="pasteSharedNodeData()">Paste Clipboard</button>
+                    <button id="importNodeConfigButton" class="alt" onclick="importSharedNodeData()">Import Payload</button>
+                </div>
+                <div class="note">
+                    <p>Copying exports the current node config plus live runtime details such as the public key, advertised endpoint, and active in-tunnel server URL. Importing maps that data into this tab’s peer config, flips the local tunnel IP to the complementary address when possible, and can auto-run a request to the remote server.</p>
+                </div>
+            </section>
+
+            <section class="card third">
+                <h2>Advertised Endpoint</h2>
+                <div class="field">
+                    <label for="actualListenPort">Actual WG listen port</label>
+                    <input id="actualListenPort" class="readonly" readonly>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="advertisedUdp">Raw UDP bind from proxy</label>
+                    <input id="advertisedUdp" class="readonly" readonly>
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="suggestedEndpoint">Suggested peer endpoint</label>
+                    <input id="suggestedEndpoint" class="readonly" readonly>
+                </div>
+            </section>
+
+            <section class="card third">
+                <h2>In-Tunnel HTTP Server</h2>
+                <div class="field">
+                    <label for="serverListenAddr">Listen address inside VTun</label>
+                    <input id="serverListenAddr" placeholder="0.0.0.0:8000">
+                </div>
+                <div class="field" style="margin-top:14px;">
+                    <label for="serverBody">Response body</label>
+                    <textarea id="serverBody"></textarea>
+                </div>
+                <div class="actions">
+                    <button id="startServerButton" class="warn" onclick="startServer()">Start HTTP Server</button>
+                    <button id="stopServerButton" class="alt" onclick="stopServer()">Stop HTTP Server</button>
+                </div>
+            </section>
+
+            <section class="card third">
+                <h2>Reachability</h2>
+                <div class="field">
+                    <label for="serverUrl">Server URL to test from peer</label>
+                    <input id="serverUrl" class="readonly" readonly>
+                </div>
+                <div class="note">
+                    <p>If the proxy reports an unspecified bind address such as <code>0.0.0.0</code>, use the suggested endpoint or replace the host manually with the proxy host that other peers can actually reach.</p>
+                </div>
+            </section>
+
+            <section class="card half">
+                <h2>HTTP Client</h2>
+                <div class="field-grid">
+                    <div class="field">
+                        <label for="requestMethod">Method</label>
+                        <select id="requestMethod">
+                            <option>GET</option>
+                            <option>POST</option>
+                            <option>PUT</option>
+                            <option>PATCH</option>
+                            <option>DELETE</option>
+                            <option>HEAD</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="requestUrl">Target URL inside tunnel</label>
+                        <input id="requestUrl" placeholder="http://10.44.0.2:8000/">
+                    </div>
+                </div>
+                <div class="field-grid" style="margin-top:14px;">
+                    <div class="field">
+                        <label for="requestHeaders">Headers</label>
+                        <textarea id="requestHeaders" placeholder="Accept: text/plain&#10;X-Debug: 1"></textarea>
+                    </div>
+                    <div class="field">
+                        <label for="requestBody">Body</label>
+                        <textarea id="requestBody" placeholder="Optional request body"></textarea>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="requestButton" onclick="runRequest()">Run HTTP Request</button>
+                </div>
+                <div id="requestStatus" class="status ready">Request path is idle.</div>
+                <div class="result" id="requestResult"></div>
+            </section>
+
+            <section class="card half">
+                <h2>Live Logs</h2>
+                <div id="logs" class="logs"></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="wasm_exec.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

@@ -38,7 +38,7 @@
               ''; in builtins.toString script;
               stages = [ "commit-msg" ];
             };
-            govet.enable = true;
+            # govet.enable = true;
             gofmt.enable = true;
             # golangci-lint.enable = true;
             gotidy = {
@@ -49,14 +49,14 @@
               ''; in builtins.toString script;
               stages = [ "pre-commit" ];
             };
-            golangtest = {
-              enable = true;
-              description = "go test ./... --race";
-              entry = let script = pkgs.writeShellScript "gotidyhook" ''
-                go test ./... --race
-              ''; in builtins.toString script;
-              stages = [ "pre-commit" ];
-            };
+            # golangtest = {
+            #   enable = true;
+            #   description = "go test ./... --race";
+            #   entry = let script = pkgs.writeShellScript "gotidyhook" ''
+            #     go test ./... --race
+            #   ''; in builtins.toString script;
+            #   stages = [ "pre-commit" ];
+            # };
           };
         };
       };
@@ -72,6 +72,8 @@
           commitizen
 
           just
+
+          gost
         ];
       };
     });

@@ -35,3 +35,8 @@ go.work.sum
 /.pre-commit-config.yaml
 /.direnv
 
+wasm_exec.js
+app.wasm
+
+err.log
+
