@@ -1,6 +1,6 @@
 # wg-web-demo
 
-Browser WASM demonstration of HTTP over VTun over WireGuard over SOCKS-over-WebSocket.
+[Browser WASM demonstration](https://asciimoth.github.io/wg-web-demo/) of HTTP over VTun over WireGuard over SOCKS-over-WebSocket.
 
 It uses:
 - [socksgo](https://github.com/asciimoth/socksgo) for SOCKS-over-WebSocket transport
