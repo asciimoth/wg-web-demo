@@ -694,8 +694,8 @@ func (b *loggingBind) BatchSize() int {
 }
 
 type recordingNetwork struct {
+	*gonnect.RejectNetwork
 	base gonnect.Network
-	lcn  gonnect.ListenConfigNetwork
 
 	mu sync.Mutex
 
@@ -709,9 +709,6 @@ func newRecordingNetwork(base gonnect.Network) *recordingNetwork {
 	rn := &recordingNetwork{
 		base:           base,
 		singleStackUDP: base != nil && !base.IsNative(),
-	}
-	if lcn, ok := base.(gonnect.ListenConfigNetwork); ok {
-		rn.lcn = lcn
 	}
 	return rn
 }
@@ -794,11 +791,8 @@ func (n *recordingNetwork) ListenPacketConfig(
 	lc *gonnect.ListenConfig,
 	network, address string,
 ) (gonnect.PacketConn, error) {
-	if n.lcn == nil {
-		return n.ListenPacket(ctx, network, address)
-	}
 	logLine("network", fmt.Sprintf("listen_packet_config network=%s address=%s", network, address))
-	pc, err := n.lcn.ListenPacketConfig(ctx, lc, network, address)
+	pc, err := n.base.ListenPacketConfig(ctx, lc, network, address)
 	if conn, ok := pc.(net.Conn); ok {
 		n.record(network, conn, err)
 	}
@@ -814,11 +808,8 @@ func (n *recordingNetwork) ListenUDPConfig(
 		logLine("network", fmt.Sprintf("listen_udp_config network=%s forced_single_stack err=%v", network, err))
 		return nil, err
 	}
-	if n.lcn == nil {
-		return n.ListenUDP(ctx, network, laddr)
-	}
 	logLine("network", fmt.Sprintf("listen_udp_config network=%s laddr=%s", network, laddr))
-	conn, err := n.lcn.ListenUDPConfig(ctx, lc, network, laddr)
+	conn, err := n.base.ListenUDPConfig(ctx, lc, network, laddr)
 	n.record(network, conn, err)
 	return conn, err
 }
