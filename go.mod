@@ -3,18 +3,18 @@ module github.com/asciimoth/wg-web-demo
 go 1.25.5
 
 require (
-	github.com/asciimoth/batchudp v0.1.4
-	github.com/asciimoth/gonnect v0.13.0
-	github.com/asciimoth/gonnect-netstack v0.4.15
-	github.com/asciimoth/socksgo v0.2.11
-	github.com/asciimoth/wgo v0.2.3
+	github.com/asciimoth/batchudp v0.1.5
+	github.com/asciimoth/gonnect v0.14.0
+	github.com/asciimoth/gonnect-netstack v0.4.16
+	github.com/asciimoth/socksgo v0.2.12
+	github.com/asciimoth/wgo v0.2.4
 	golang.org/x/crypto v0.51.0
 )
 
 require (
 	github.com/asciimoth/bufpool v0.3.0 // indirect
 	github.com/asciimoth/ident v0.2.0 // indirect
-	github.com/asciimoth/tuntap v0.3.2 // indirect
+	github.com/asciimoth/tuntap v0.3.3 // indirect
 	github.com/coder/websocket v1.8.14 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/xtaci/smux v1.5.44 // indirect
